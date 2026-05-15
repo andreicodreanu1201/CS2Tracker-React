@@ -1,7 +1,7 @@
 {
   "name": "cs2tacticaltrackerrn",
   "version": "1.0.0",
-  "main": "index.ts",
+  "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
@@ -16,13 +16,19 @@
     "expo-sqlite": "~16.0.10",
     "expo-status-bar": "~3.0.9",
     "lucide-react-native": "^1.16.0",
+    "nativewind": "^4.2.3",
     "react": "19.1.0",
+    "react-dom": "19.1.0",
     "react-native": "0.81.5",
     "react-native-safe-area-context": "~5.6.0",
-    "react-native-screens": "~4.16.0"
+    "react-native-screens": "~4.16.0",
+    "react-native-url-polyfill": "^3.0.0",
+    "react-native-web": "^0.21.0",
+    "tailwindcss": "^3.3.2"
   },
   "devDependencies": {
     "@types/react": "~19.1.0",
+    "babel-preset-expo": "^55.0.21",
     "react-native-dotenv": "^3.4.11",
     "typescript": "~5.9.2"
   },
