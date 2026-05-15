@@ -28,14 +28,13 @@ export default function RootLayout() {
 
   useEffect(() => {
     if (!isInitialized) return;
+    if (!segments || !segments[0]) return;
 
-    const inAuthGroup = segments[0] === "(tabs)";
+    const inUnauthGroup = segments[0] === "login" || segments[0] === "register";
 
-    if (isLoggedIn && !inAuthGroup) {
-      // Daca utilizatorul este autentificat si nu e in tab-uri, il trimitem acolo
+    if (isLoggedIn && inUnauthGroup) {
       router.replace("/(tabs)");
-    } else if (!isLoggedIn && inAuthGroup) {
-      // Daca nu e autentificat si e in tab-uri, il trimitem la login
+    } else if (!isLoggedIn && !inUnauthGroup) {
       router.replace("/login");
     }
   }, [isLoggedIn, isInitialized, segments]);
@@ -45,6 +44,7 @@ export default function RootLayout() {
       <Stack.Screen name="login" />
       <Stack.Screen name="register" />
       <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="details/[id]" />
     </Stack>
   );
 }

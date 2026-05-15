@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { db } from "../services/Database";
 
 export const useSkins = () => {
@@ -9,52 +9,61 @@ export const useSkins = () => {
     console.log("--- SYNC ATTEMPT STARTED ---");
 
     try {
-      const response = await fetch(
-        "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/skins.json"
-      );
+      const url =
+        "https://raw.githubusercontent.com/ByMykel/CSGO-API/main/public/api/en/skins.json";
+      const response = await fetch(url);
       const data = await response.json();
 
-      // Mapăm datele conform modelului WeaponAsset.swift
-      // Luăm primele 200 pentru a menține viteza ca în varianta Swift
-      const mappedSkins = data.slice(0, 200).map((skin: any) => ({
-        id: skin.id,
-        name: skin.name,
-        rarity: skin.rarity?.name || "Unknown",
-        imageURL: skin.image,
-        collection: skin.collections?.[0]?.name || "Global Archive",
-        floatValue: Math.random() * 0.08,
-        price:
-          skin.rarity?.name === "Covert"
-            ? Math.random() * (1500 - 150) + 150
-            : Math.random() * 50, // Logica de preț din Swift
-        rarityColor: skin.rarity?.color || "#808080",
-      }));
-
-      // Salvare în SQLite (Echivalentul modelContext.insert în SwiftData)
-      const statement = await db.prepareAsync(
-        "INSERT OR REPLACE INTO weapons (id, name, rarity, imageURL, collection, floatValue, price, rarityColor) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-      );
-
-      for (const skin of mappedSkins) {
-        await statement.executeAsync([
-          skin.id,
-          skin.name,
-          skin.rarity,
-          skin.imageURL,
-          skin.collection,
-          skin.floatValue,
-          skin.price,
-          skin.rarityColor,
-        ]);
+      // Shuffle ALL items using Fisher-Yates
+      const shuffledItems = [...data];
+      for (let i = shuffledItems.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledItems[i], shuffledItems[j]] = [shuffledItems[j], shuffledItems[i]];
       }
+      
+      // Pick 200 random items
+      const apiSkins = shuffledItems.slice(0, 200);
 
-      console.log("--- SUCCESS: DECODED " + mappedSkins.length + " ASSETS ---");
+      // Clear existing items so we don't accumulate thousands of random skins over time
+      await db.runAsync("DELETE FROM weapons");
+
+      for (const skin of apiSkins) {
+        // Logica de preț bazată pe raritate din DashboardViewModel.swift
+        const rarityName = skin.rarity?.name ?? "Unknown";
+        let randomPrice = Math.random() * (9.99 - 0.5) + 0.5;
+
+        if (rarityName === "Covert")
+          randomPrice = Math.random() * (1500 - 150) + 150;
+        else if (rarityName === "Classified")
+          randomPrice = Math.random() * (149 - 50) + 50;
+        else if (rarityName === "Restricted")
+          randomPrice = Math.random() * (49 - 10) + 10;
+
+        await db.runAsync(
+          "INSERT OR REPLACE INTO weapons (id, name, rarity, rarityColor, imageURL, collection, floatValue, price) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+          [
+            skin.id,
+            skin.name,
+            rarityName,
+            skin.rarity?.color ?? "#808080",
+            skin.image,
+            skin.collections?.[0]?.name ?? "Global Archive", // Fallback identic cu Swift
+            Math.random() * (0.08 - 0.001) + 0.001, // floatValue: Double.random(in: 0.001...0.08)
+            randomPrice,
+          ]
+        );
+      }
+      console.log("--- DATABASE UPDATED ---");
     } catch (error) {
-      console.error("--- SYNC ERROR: ", error);
+      console.error("--- DECODING ERROR: ", error);
     } finally {
       setIsSyncing(false);
     }
   };
 
-  return { syncAssets, isSyncing };
+  useEffect(() => {
+    syncAssets();
+  }, []);
+
+  return { isSyncing };
 };
