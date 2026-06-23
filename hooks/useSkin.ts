@@ -18,9 +18,12 @@ export const useSkins = () => {
       const shuffledItems = [...data];
       for (let i = shuffledItems.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [shuffledItems[i], shuffledItems[j]] = [shuffledItems[j], shuffledItems[i]];
+        [shuffledItems[i], shuffledItems[j]] = [
+          shuffledItems[j],
+          shuffledItems[i],
+        ];
       }
-      
+
       // Pick 200 random items
       const apiSkins = shuffledItems.slice(0, 200);
 
@@ -65,5 +68,5 @@ export const useSkins = () => {
     syncAssets();
   }, []);
 
-  return { isSyncing };
+  return { isSyncing, syncAssets };
 };

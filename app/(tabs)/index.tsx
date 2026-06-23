@@ -6,14 +6,18 @@ import {
   Image,
   ActivityIndicator,
   TouchableOpacity,
+  Animated,
+  Easing,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useSkins } from "../../hooks/useSkin";
 import { db } from "../../services/Database";
 import { Ionicons } from "@expo/vector-icons";
 
+const AnimatedIonicons = Animated.createAnimatedComponent(Ionicons);
+
 export default function MainDashboard() {
-  const { isSyncing } = useSkins();
+  const { isSyncing, syncAssets } = useSkins();
   const router = useRouter();
   const [assets, setAssets] = useState<any[]>([]);
 
@@ -23,6 +27,29 @@ export default function MainDashboard() {
     );
     setAssets(result);
   };
+
+  const spinValue = React.useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (isSyncing) {
+      Animated.loop(
+        Animated.timing(spinValue, {
+          toValue: 1,
+          duration: 1000,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        })
+      ).start();
+    } else {
+      spinValue.stopAnimation();
+      spinValue.setValue(0);
+    }
+  }, [isSyncing, spinValue]);
+
+  const spin = spinValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ["0deg", "360deg"],
+  });
 
   useEffect(() => {
     fetchLocalData();
@@ -138,14 +165,14 @@ export default function MainDashboard() {
               <Text className="text-gray-500 font-bold text-[10px]">
                 MARKET ALERTS
               </Text>
-              <Ionicons
-                name="refresh"
-                size={14}
-                color="#00e639"
-                style={{
-                  transform: [{ rotate: isSyncing ? "180deg" : "0deg" }],
-                }}
-              />
+              <TouchableOpacity onPress={syncAssets} activeOpacity={0.7}>
+                <AnimatedIonicons
+                  name="refresh"
+                  size={14}
+                  color="#00e639"
+                  style={{ transform: [{ rotate: spin }] }}
+                />
+              </TouchableOpacity>
             </View>
 
             <View className="space-y-[1px]">

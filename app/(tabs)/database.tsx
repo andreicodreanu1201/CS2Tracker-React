@@ -34,7 +34,7 @@ export default function WeaponryDatabase() {
 
   return (
     <View className="flex-1 bg-[#0e0e0e] pt-14">
-      {/* SEARCH BAR - Identic Swift */}
+      {/* Search bar*/}
       <View className="px-4 mb-6">
         <Text className="text-[#00e639] font-bold text-[10px] mb-2 tracking-widest">
           SEARCH DATABASE
@@ -56,12 +56,12 @@ export default function WeaponryDatabase() {
         {filteredAssets.map((asset) => (
           <TouchableOpacity
             key={asset.id}
-            // MODIFICARE CRITICĂ: Navigare explicită către ruta de detalii
+            // Navigare explicită către ruta de detalii
             onPress={() => router.push(`/details/${asset.id}` as any)}
             activeOpacity={0.8}
             className="bg-[#131313] mb-[1px] flex-row items-center p-4 relative"
           >
-            {/* Raritate Laterală - Identic AssetRow din Swift */}
+            {/* Raritate Laterală  */}
             <View
               className="absolute left-0 top-0 bottom-0 w-[3px]"
               style={{ backgroundColor: asset.rarityColor }}
